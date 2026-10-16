@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All-in-One Life Planner Pro</title>
+  <link rel="manifest" href="manifest.json">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Identity Services API untuk OAuth Login -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen pb-12">
+
+  <!-- TOP HEADER -->
+  <header class="bg-slate-800 border-b border-slate-700 p-4 sticky top-0 z-40 flex justify-between items-center shadow-lg">
+    <div class="flex items-center space-x-2">
+      <span class="text-2xl">⚡</span>
+      <h1 class="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+        LifePlanner Pro
+      </h1>
+    </div>
+    <div id="license-badge" class="px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-full text-xs font-semibold flex items-center gap-1 cursor-pointer" onclick="toggleModal('license-modal')">
+      <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+      <span>Cek Lisensi</span>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-5xl mx-auto p-4 md:p-6 space-y-8">
+
+    <!-- NAVIGATION TABS -->
+    <nav class="flex overflow-x-auto space-x-2 border-b border-slate-700 pb-2 no-scrollbar">
+      <button onclick="switchTab('daily')" id="tab-daily" class="tab-btn px-4 py-2 rounded-lg font-medium text-sm transition bg-indigo-600 text-white whitespace-nowrap">📅 Daily & Weekly</button>
+      <button onclick="switchTab('finance')" id="tab-finance" class="tab-btn px-4 py-2 rounded-lg font-medium text-sm transition text-slate-400 hover:bg-slate-800 whitespace-nowrap">💰 Finance</button>
+      <button onclick="switchTab('habit')" id="tab-habit" class="tab-btn px-4 py-2 rounded-lg font-medium text-sm transition text-slate-400 hover:bg-slate-800 whitespace-nowrap">🔥 Habit & Health</button>
+      <button onclick="switchTab('goal')" id="tab-goal" class="tab-btn px-4 py-2 rounded-lg font-medium text-sm transition text-slate-400 hover:bg-slate-800 whitespace-nowrap">🎯 Goals & Vision</button>
+    </nav>
+
+    <!-- MODULE 1: DAILY & WEEKLY PLANNER -->
+    <section id="mod-daily" class="space-y-4">
+      <div class="flex justify-between items-center">
+        <h2 class="text-lg font-semibold text-indigo-400">Target & Tugas Harian</h2>
+        <span id="current-date-text" class="text-xs text-slate-400"></span>
+      </div>
+      <form id="form-task" onsubmit="addTask(event)" class="flex gap-2">
+        <input type="text" id="input-task-title" placeholder="Tambah prioritas harian baru..." required class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-indigo-500">
+        <select id="input-task-priority" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm">
+          <option value="High">🔴 Tinggi</option>
+          <option value="Medium" selected>🟡 Sedang</option>
+          <option value="Low">🟢 Rendah</option>
+        </select>
+        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg font-semibold text-sm">Tambah</button>
+      </form>
+      <div id="list-tasks" class="space-y-2"></div>
+    </section>
+
+    <!-- MODULE 2: FINANCIAL PLANNER -->
+    <section id="mod-finance" class="space-y-4 hidden">
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+          <p class="text-xs text-slate-400">Total Pemasukan</p>
+          <p id="stat-income" class="text-xl font-bold text-emerald-400">Rp 0</p>
+        </div>
+        <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+          <p class="text-xs text-slate-400">Total Pengeluaran</p>
+          <p id="stat-expense" class="text-xl font-bold text-rose-400">Rp 0</p>
+        </div>
+        <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 col-span-2 md:col-span-1">
+          <p class="text-xs text-slate-400">Sisa Anggaran</p>
+          <p id="stat-balance" class="text-xl font-bold text-indigo-400">Rp 0</p>
+        </div>
+      </div>
+      <form id="form-finance" onsubmit="addTransaction(event)" class="grid grid-cols-1 md:grid-cols-4 gap-2">
+        <input type="text" id="fin-desc" placeholder="Keterangan (misal: Gaji / Makan)" required class="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm">
+        <input type="number" id="fin-amount" placeholder="Jumlah (Rp)" required class="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm">
+        <select id="fin-type" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm">
+          <option value="income">💵 Pemasukan</option>
+          <option value="expense" selected>💸 Pengeluaran</option>
+        </select>
+        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg font-semibold text-sm">Catat Transaksi</button>
+      </form>
+      <div id="list-finance" class="space-y-2"></div>
+    </section>
+
+    <!-- MODULE 3: HABIT & HEALTH TRACKER -->
+    <section id="mod-habit" class="space-y-4 hidden">
+      <h2 class="text-lg font-semibold text-indigo-400">Kebiasaan Harian (*Habit Tracker*)</h2>
+      <form id="form-habit" onsubmit="addHabit(event)" class="flex gap-2">
+        <input type="text" id="habit-title" placeholder="Kebiasaan baru (misal: Olahraga 20 Menit / Baca Buku)..." required class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm">
+        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg font-semibold text-sm">Tambah Habit</button>
+      </form>
+      <div id="list-habits" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+    </section>
+
+    <!-- MODULE 4: GOAL & LONG-TERM PLANNER -->
+    <section id="mod-goal" class="space-y-4 hidden">
+      <h2 class="text-lg font-semibold text-indigo-400">Target & Impian Jangka Panjang</h2>
+      <form id="form-goal" onsubmit="addGoal(event)" class="grid grid-cols-1 md:grid-cols-3 gap-2">
+        <input type="text" id="goal-title" placeholder="Target Impian (misal: Beli Laptop Baru)" required class="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm">
+        <input type="number" id="goal-target" placeholder="Target Dana (Rp) - Opsional" class="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm">
+        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg font-semibold text-sm">Tambah Target</button>
+      </form>
+      <div id="list-goals" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: LISENSI & OTENTIKASI LYNK.ID -->
+  <div id="license-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full space-y-6 shadow-2xl relative">
+      <button onclick="toggleModal('license-modal')" class="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
+      
+      <div class="text-center space-y-2">
+        <div class="w-12 h-12 bg-indigo-600/20 text-indigo-400 rounded-full flex items-center justify-center mx-auto text-2xl">🔑</div>
+        <h3 class="text-xl font-bold">Aktivasi Lisensi Seumur Hidup</h3>
+        <p class="text-xs text-slate-400">Masukkan Order ID Lynk.id / Gumroad dan Login Akun Google Anda untuk memverifikasi hak akses lisensi.</p>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">ID ORDER PEMBELIAN</label>
+          <input type="text" id="license-order-id" placeholder="Contoh: LYNK-9823412" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">AKUN GOOGLE TERHUBUNG</label>
+          <!-- Google OAuth Button Container -->
+          <div id="g_id_onload"
+               data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
+               data-callback="handleCredentialResponse">
+          </div>
+          <div class="g_id_signin w-full" data-type="standard" data-size="large" data-theme="filled_blue" data-text="sign_in_with" data-shape="rectangular" data-logo_alignment="left"></div>
+        </div>
+
+        <div id="license-status-card" class="bg-slate-900/50 p-3 rounded-lg border border-slate-700/50 space-y-1 text-xs">
+          <div class="flex justify-between">
+            <span class="text-slate-400">Status Lisensi:</span>
+            <span id="lic-status" class="text-rose-400 font-bold">Belum Terverifikasi</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Perangkat Aktif (Maks 2):</span>
+            <span id="lic-devices" class="text-slate-200">0 / 2</span>
+          </div>
+        </div>
+
+        <button onclick="verifyAndActivateLicense()" class="w-full bg-indigo-600 hover:bg-indigo-500 py-3 rounded-lg font-bold text-sm transition">Verifikasi & Aktifkan Perangkat Ini</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
